@@ -7,11 +7,10 @@
 // I don't think that's the case - result of multiplication will not be symmetric most of the time
 
 // inf norm of matrix
-//template<typename Matrix>
-double norm(const blaze::DynamicMatrix<double, blaze::rowMajor> & m)
+template<typename Matrix>
+typename Matrix::ElementType norm(Matrix && m)
 {
-	//typedef typename Matrix::ElementType FloatType;
-	typedef double FloatType;	
+	typedef typename Matrix::ElementType FloatType;
 	FloatType res = 0.0;
 	//No generic iterator + padding in matrix -> no STL algorithms
 	for(size_t i = 0; i < m.rows(); ++i) {

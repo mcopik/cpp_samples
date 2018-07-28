@@ -72,6 +72,13 @@ namespace {
   }
 #endif
 
+#if defined(HAVE_CXX17_FOLD_EXPR)
+  template<typename... Args>
+  bool all_true(Args &&... args)
+  {
+   return (... && has_value(args));
+  }
+#else
   bool all_true()
   {
     return true;
@@ -82,6 +89,7 @@ namespace {
   {
    return has_value(a) && all_true(args...);
   }
+#endif
 
   // Is an object of type A
   template <typename T, template<typename...> class A>

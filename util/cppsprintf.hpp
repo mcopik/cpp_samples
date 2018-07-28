@@ -123,6 +123,7 @@ namespace {
 #endif
 
 #endif
+
   template<typename ... Args>
   std::string cppsprintf_impl(const std::string& format, Args &&... args)
   {
@@ -133,28 +134,51 @@ namespace {
   }
 }
 
-// FIXME: single function with C++17
+/// sprintf wrapper for case where optional values are passed
 #if HAVE_OPTIONAL
-template<typename ... Args>
-auto cppsprintf(const std::string& format, Args &&... args)
-  -> typename std::enable_if< contains_optional<Args...>::value, OPTIONAL<std::string>>::type
-{
-  if(!all_true(args...))
-    return OPTIONAL<std::string>();
-  return cppsprintf_impl(format, std::forward<Args>(args)...);
-}
+
+  #if defined(HAVE_CXX17_CONSTEXPR_IF)
+    template<typename ... Args>
+    auto cppsprintf(const std::string& format, Args &&... args)
+    {
+      if constexpr(contains_optional<Args...>::value) {
+        if(!all_true(args...))
+          return OPTIONAL<std::string>();
+        return OPTIONAL<std::string>(
+          cppsprintf_impl(format, std::forward<Args>(args)...)
+        );
+      } else {
+        return cppsprintf_impl(format, std::forward<Args>(args)...);
+      }
+    }
+  #else
+    template<typename ... Args>
+    auto cppsprintf(const std::string& format, Args &&... args)
+      -> typename std::enable_if< contains_optional<Args...>::value, OPTIONAL<std::string>>::type
+    {
+      if(!all_true(args...))
+        return OPTIONAL<std::string>();
+      return cppsprintf_impl(format, std::forward<Args>(args)...);
+    }
+  #endif
+
+#endif 
+
+/// The second implementation for runs without optional values or for case
+/// Not necessary when constexpr if is available.
+#if not defined(HAVE_CXX17_CONSTEXPR_IF)
+  template<typename ... Args>
+  auto cppsprintf(const std::string& format, Args &&... args)
+  #if HAVE_OPTIONAL
+    -> typename std::enable_if< !contains_optional<Args...>::value, std::string >::type
+  #else
+    -> std::string
+  #endif
+  {
+    return cppsprintf_impl(format, std::forward<Args>(args)...);
+  }
 #endif
 
-template<typename ... Args>
-auto cppsprintf(const std::string& format, Args &&... args)
-#if HAVE_OPTIONAL
-  -> typename std::enable_if< !contains_optional<Args...>::value, std::string >::type
-#else
-  -> std::string
-#endif
-{
-  return cppsprintf_impl(format, std::forward<Args>(args)...);
-}
 
 #endif
 

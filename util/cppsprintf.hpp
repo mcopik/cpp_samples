@@ -99,6 +99,14 @@ namespace {
   struct is_instance_of<A<T...>, A> : std::true_type{};
 
 #if HAVE_OPTIONAL
+
+#if defined(HAVE_CXX17_FOLD_EXPR)
+  template<typename... Args>
+  struct contains_optional
+  {
+    static constexpr bool value = (... || is_instance_of<Args, OPTIONAL>::value);
+  };
+#else
   template<typename Arg, typename... Args>
   struct contains_optional
   {
@@ -112,6 +120,8 @@ namespace {
   {
     static constexpr bool value = is_instance_of<Arg, OPTIONAL>::value;
   };
+#endif
+
 #endif
   template<typename ... Args>
   std::string cppsprintf_impl(const std::string& format, Args &&... args)

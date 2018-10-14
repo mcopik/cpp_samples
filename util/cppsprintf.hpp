@@ -140,6 +140,7 @@ namespace {
   #if defined(HAVE_CXX17_CONSTEXPR_IF)
     template<typename ... Args>
     auto cppsprintf(const std::string& format, Args &&... args)
+      -> typename std::conditional<contains_optional<Args...>::value, OPTIONAL<std::string>, std::string>::type
     {
       if constexpr(contains_optional<Args...>::value) {
         if(!all_true(args...))
